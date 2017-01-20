@@ -1,0 +1,58 @@
+#####################
+# Skullhouse Server #
+#####################
+
+######################################
+# Server Redirect from HTTP to HTTPS #
+######################################
+server {
+	listen 80 default_server;
+	listen [::]:80 ipv6only=on;
+	listen 443 ssl http2 default_server;
+	listen [::]:443 ssl http2 ipv6only=on;
+
+	# TLS certs
+	ssl_certificate /etc/letsencrypt/live/www.skullhouse.nyc/fullchain.pem; # TLS certs based off of LE
+	ssl_certificate_key /etc/letsencrypt/live/www.skullhouse.nyc/privkey.pem; # TLS certs based off of LE
+
+	server_name skullhouse.nyc;
+	return 301 https://www.skullhouse.nyc$request_uri;
+}
+
+######################
+# Global TLS Servers #
+######################
+server {
+	listen 443 ssl http2;
+	listen [::]:443 ssl http2;
+
+	# TLS certs
+	ssl_certificate /etc/letsencrypt/live/www.skullhouse.nyc/fullchain.pem; # TLS certs based off of LE
+	ssl_certificate_key /etc/letsencrypt/live/www.skullhouse.nyc/privkey.pem; # TLS certs based off of LE
+
+	server_name www.skullhouse.nyc;
+	root /server/website;
+
+	##### Implements Caching #####
+	location ~* \.(js|css|png|jpg|gif|ico)(\?ver=[0-9.]+)?$ {expires 1y;}
+
+	# Serves static files for the application
+	location /static {
+		alias /server/website/static;
+	}
+
+	# Sets up allowing the acme challenge for letsencrypt
+	location /.well-known/acme-challenge {
+		alias /usr/share/nginx/html/.well-known/acme-challenge;
+	}
+
+	# Actually serves through the uwsgi protocol via a unix socket
+	location / {
+		include         uwsgi_params;
+		# Sets the socket to a unix socket (default, faster)
+		uwsgi_pass	unix:///run/uwsgi/website.sock;
+
+#		# Sets the socket to a websocket (slower, but backup if sockets fuck up)
+#		uwsgi_pass	127.0.0.1:3031;
+	}
+} ##### End of the Global TLS Server Block #####

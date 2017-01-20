@@ -1,0 +1,34 @@
+##
+# Dev server (HTTP ONLY)
+##
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /usr/share/nginx/html;
+
+	# Add index.php to the list if you are using PHP
+	index index.html;
+
+	server_name _;
+
+	# Serves static files for the application
+	location /static {
+		alias /server/website/static;
+	}
+
+	# Sets up allowing the acme challenge for letsencrypt
+	location /.well-known/acme-challenge {
+		alias /usr/share/nginx/html/.well-known/acme-challenge;
+	}
+
+	# Actually serves through the uwsgi protocol via a unix socket
+	location / {
+		include         uwsgi_params;
+		# Sets the socket to a unix socket (default, faster)
+		uwsgi_pass	unix:///run/uwsgi/website.sock;
+
+#		# Sets the socket to a websocket (slower, but backup if sockets fuck up)
+#		uwsgi_pass	127.0.0.1:3031;
+	}
+}

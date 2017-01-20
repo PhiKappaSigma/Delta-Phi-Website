@@ -17,7 +17,7 @@ virtualenv_packages=(django uwsgi psycopg2)
 db_username="dev"
 db_password="password"
 db_name="dev"
-site_name="TakeUp"
+site_name="website"
 
 ###
 # Helper functions

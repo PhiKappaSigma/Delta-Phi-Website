@@ -14,9 +14,9 @@ set -e
 virtualenv_packages=(django uwsgi psycopg2)
 
 # Sources secret settings (development only with vagrant)
-db_username="dev"
+db_username="skullhouse"
 db_password="password"
-db_name="dev"
+db_name="skullhouse"
 site_name="website"
 
 ###
